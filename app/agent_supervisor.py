@@ -1,6 +1,6 @@
-# Importing necessary modules and classes
+# Step 1: Import necessary modules and classes
+# Fill in any additional imports you might need
 from typing import Annotated, Any, Dict, List, Optional, Sequence, TypedDict
-
 import functools
 import operator
 
@@ -14,58 +14,41 @@ from langchain_core.tools import tool
 from langchain_experimental.tools import PythonREPLTool
 from langgraph.graph import StateGraph, END
 
-# Defining tools
+# Step 2: Define tools
+# Here, define any tools the agents might use. Example given:
 tavily_tool = TavilySearchResults(max_results=5)
 
-# This executes code locally, which can be unsafe
+# This tool executes code locally, which can be unsafe. Use with caution:
 python_repl_tool = PythonREPLTool()
 
-# System prompt for the supervisor agent
-# ===================FILL IN: Members========================
-system_prompt = (
-    "You are a supervisor tasked with managing a conversation between the"
-    " following workers:  {members}. Given the following user request,"
-    " respond with the worker to act next. Each worker will perform a"
-    " task and respond with their results and status. When finished,"
-    " respond with FINISH."
-)
+# Step 3: Define the system prompt for the supervisor agent
+# Customize the members list as needed.
 
-# Options for the supervisor to choose from
-# ===================FILL IN: Options========================
+# Step 4: Define options for the supervisor to choose from
 
-# Function definition for OpenAI function calling
-# ===================FILL IN: Supervisor Function Def========================
+# Step 5: Define the function for OpenAI function calling
+# Define what the function should do and its parameters.
 
-# Prompt for the supervisor agent
-prompt = ChatPromptTemplate.from_messages(
-    [
-        ("system", system_prompt),
-        MessagesPlaceholder(variable_name="messages"),
-        (
-            "system",
-            "Given the conversation above, who should act next?"
-            " Or should we FINISH? Select one of: {options}",
-        ),
-    ]
-).partial(options=str(options), members=", ".join(members))
+# Step 6: Define the prompt for the supervisor agent
+# Customize the prompt if needed.
 
-# Initializing the language model
+# Step 7: Initialize the language model
+# Choose the model you need, e.g., "gpt-4o"
 llm = ChatOpenAI(model="gpt-4o")
 
-# Creating the supervisor chain
-# ===================FILL IN: Supervisor Chain========================
+# Step 8: Create the supervisor chain
+# Define how the supervisor chain will process messages.
+supervisor_chain = (
+    prompt
+    | llm.bind_functions(functions=[function_def], function_call="route")
+    | JsonOutputFunctionsParser()
+)
 
-# Defining a typed dictionary for agent state
-class AgentState(TypedDict):
-    # The annotation tells the graph that new messages will always
-    # be added to the current states
-    messages: Annotated[Sequence[BaseMessage], operator.add]
-    # The 'next' field indicates where to route to next
-    next: str
+# Step 9: Define a typed dictionary for agent state
 
-# Function to create an agent
+# Step 10: Function to create an agent
+# Fill in the system prompt and tools for each agent you need to create.
 def create_agent(llm: ChatOpenAI, tools: list, system_prompt: str):
-    # Each worker node will be given a name and some tools.
     prompt = ChatPromptTemplate.from_messages(
         [
             (
@@ -80,36 +63,32 @@ def create_agent(llm: ChatOpenAI, tools: list, system_prompt: str):
     executor = AgentExecutor(agent=agent, tools=tools)
     return executor
 
-# Function to create an agent node
+# Step 11: Function to create an agent node
+# This function processes the state through the agent and returns the result.
 def agent_node(state, agent, name):
     result = agent.invoke(state)
     return {"messages": [HumanMessage(content=result["output"], name=name)]}
 
-# Creating agents and their corresponding nodes
+# Step 12: Create agents and their corresponding nodes
+# Define the specific role and tools for each agent.
 
-# ===================FILL IN: Reserach Agent Creation========================
+# Step 13: Define the workflow using StateGraph
+# Add nodes and their corresponding functions to the workflow.
 
-# ===================FILL IN: Review Agent Creation==========================
-
-# ===================FILL IN: Coder Agent Creation===========================
-
-# ===================FILL IN: QA Tester Agent Creation========================
-
-
-# Defining the workflow using StateGraph
-# ===================FILL IN: Add noes to workflow========================
-
-# Adding edges to the workflow
+# Step 14: Add edges to the workflow
+# Ensure that all workers report back to the supervisor.
 for member in members:
-    # We want our workers to ALWAYS "report back" to the supervisor when done
     workflow.add_edge(member, "supervisor")
 
-# The supervisor populates the "next" field in the graph state
-# which routes to a node or finishes
-# ===================FILL IN: Define Graph========================
+# Step 15: Define conditional edges
+# The supervisor determines the next step or finishes the process.
+conditional_map = {k: k for k in members}
+conditional_map["FINISH"] = END
+workflow.add_conditional_edges("supervisor", lambda x: x["next"], conditional_map)
 
-# Finally, add entry point
-# ===================FILL IN: Entry Point=======================
+# Step 16: Set the entry point
+workflow.set_entry_point("supervisor")
 
-# Compile the workflow into a graph
+# Step 17: Compile the workflow into a graph
+# This creates the executable workflow.
 graph = workflow.compile()
