@@ -21,7 +21,7 @@ tavily_tool = TavilySearchResults(max_results=5)
 python_repl_tool = PythonREPLTool()
 
 # System prompt for the supervisor agent
-members = ["Researcher", "Coder", "Reviewer", "QA Tester"]
+# ===================FILL IN: Members========================
 system_prompt = (
     "You are a supervisor tasked with managing a conversation between the"
     " following workers:  {members}. Given the following user request,"
@@ -31,7 +31,7 @@ system_prompt = (
 )
 
 # Options for the supervisor to choose from
-options = ["FINISH"] + members
+# ===================FILL IN: Options========================
 
 # Function definition for OpenAI function calling
 # ===================FILL IN: Supervisor Function Def========================
@@ -97,12 +97,7 @@ def agent_node(state, agent, name):
 
 
 # Defining the workflow using StateGraph
-workflow = StateGraph(AgentState)
-workflow.add_node("Reviewer", review_node)
-workflow.add_node("Researcher", research_node)
-workflow.add_node("Coder", code_node)
-workflow.add_node("QA Tester", test_node)
-workflow.add_node("supervisor", supervisor_chain)
+# ===================FILL IN: Add noes to workflow========================
 
 # Adding edges to the workflow
 for member in members:
