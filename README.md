@@ -37,7 +37,7 @@ This script sets up a FastAPI server to expose the agent workflow as an API. It 
 
 ```python
 from langserve import create_app
-from main import graph
+from app.agent_supervisor import graph
 
 app = create_app(graph)
 
