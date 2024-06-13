@@ -9,8 +9,7 @@ async def redirect_root_to_docs():
     return RedirectResponse("/docs")
 
 
-# Edit this to add the graph
-# ===================FILL IN: Add Routes========================
+# Add routes for the graph
 
 if __name__ == "__main__":
     import uvicorn
