@@ -34,6 +34,6 @@ COPY ./app ./app
 
 RUN poetry install --no-interaction --no-ansi
 
-EXPOSE 8888
+EXPOSE 8080
 
-CMD exec uvicorn app.server:app --host 0.0.0.0 --port 8888
+CMD exec uvicorn app.server:app --host 0.0.0.0 --port 8080
